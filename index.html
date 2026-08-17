@@ -1,0 +1,501 @@
+<!-- deploy: Hiaslthehiasl/BuT-Antragshelfer -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuT-Antragshelfer - TSV 1862 Friedberg</title>
+<style>
+  :root {
+    --petrol: #0D7377;
+    --petrol-dark: #095457;
+    --ink: #1C2B2D;
+    --paper: #FAFAF8;
+    --line: #D8DFDE;
+    --error: #B3261E;
+    --ok: #1E7B4D;
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  html[dir="rtl"] body { direction: rtl; }
+
+  .shell { max-width: 640px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  header.top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+  }
+  header.top h1 { font-size: 1.25rem; margin: 0; color: var(--petrol-dark); }
+
+  select#langSelect {
+    font-size: 0.9rem; padding: 6px 10px; border: 1px solid var(--line);
+    border-radius: var(--radius); background: #fff; color: var(--ink);
+  }
+
+  .intro {
+    background: #EEF6F6; border: 1px solid #CFE6E6; border-radius: var(--radius);
+    padding: 16px 18px; margin-bottom: 24px;
+  }
+  .intro h2 { margin: 0 0 8px; font-size: 1rem; color: var(--petrol-dark); }
+  .intro p { margin: 0; font-size: 0.92rem; }
+
+  .progress {
+    display: flex; gap: 6px; margin-bottom: 24px;
+  }
+  .progress .seg {
+    flex: 1; height: 4px; border-radius: 2px; background: var(--line);
+  }
+  .progress .seg.done { background: var(--petrol); }
+
+  .step { display: none; }
+  .step.active { display: block; }
+
+  .step h2 { font-size: 1.1rem; margin: 0 0 4px; }
+  .step .hint { font-size: 0.85rem; color: #556; margin: 0 0 18px; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; }
+  .field .req { color: var(--petrol); font-weight: 400; }
+  .field input[type=text],
+  .field input[type=email],
+  .field input[type=tel],
+  .field input[type=date],
+  .field input[type=number],
+  .field select {
+    width: 100%; padding: 10px 12px; font-size: 1rem;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: #fff; color: var(--ink);
+  }
+  .field input:focus, .field select:focus {
+    outline: 2px solid var(--petrol); outline-offset: 1px;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 12px; }
+  @media (max-width: 480px) {
+    .row2, .row3 { grid-template-columns: 1fr; }
+  }
+
+  .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+  .checkbox-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 10px 12px; cursor: pointer;
+  }
+  .checkbox-item input { margin-top: 3px; width: 18px; height: 18px; flex-shrink: 0; }
+  .checkbox-item span { font-size: 0.95rem; }
+
+  .consent-box {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px 16px; font-size: 0.88rem; margin-bottom: 16px;
+  }
+
+  .nav-buttons {
+    display: flex; justify-content: space-between; margin-top: 28px; gap: 12px;
+  }
+  button {
+    font-size: 1rem; padding: 12px 22px; border-radius: var(--radius);
+    border: 1px solid var(--petrol); cursor: pointer; font-weight: 600;
+  }
+  button.primary { background: var(--petrol); color: #fff; }
+  button.primary:hover { background: var(--petrol-dark); }
+  button.secondary { background: transparent; color: var(--petrol); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .success {
+    text-align: center; padding: 40px 20px;
+  }
+  .success .icon {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--ok);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin: 0 auto 16px;
+  }
+  .success h2 { color: var(--ok); margin-bottom: 8px; }
+
+  .error-msg {
+    color: var(--error); font-size: 0.85rem; margin-top: 4px; display: none;
+  }
+  .field.invalid input, .field.invalid select { border-color: var(--error); }
+  .field.invalid .error-msg { display: block; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="top">
+    <h1 id="appTitle">Zuschuss beantragen</h1>
+    <select id="langSelect" aria-label="Sprache">
+      <option value="de">Deutsch</option>
+      <option value="en">English</option>
+      <option value="tr">Türkçe</option>
+      <option value="ar">العربية</option>
+      <option value="ru">Русский</option>
+      <option value="uk">Українська</option>
+      <option value="fr">Français</option>
+      <option value="es">Español</option>
+    </select>
+  </header>
+
+  <div class="intro">
+    <h2 id="introTitle"></h2>
+    <p id="introText"></p>
+  </div>
+
+  <div class="progress" id="progressBar"></div>
+
+  <form id="butForm" novalidate>
+
+    <!-- Step 1: Stammdaten -->
+    <section class="step active" data-step="0">
+      <h2 id="step1Title"></h2>
+
+      <div class="field">
+        <label for="kindVorname"><span data-t="field_kind_vorname"></span> <span class="req">*</span></label>
+        <input type="text" id="kindVorname" required>
+        <div class="error-msg" data-t="required_hint"></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="kindNachname"><span data-t="field_kind_nachname"></span> <span class="req">*</span></label>
+          <input type="text" id="kindNachname" required>
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+        <div class="field">
+          <label for="kindGeburtsdatum"><span data-t="field_kind_geburtsdatum"></span> <span class="req">*</span></label>
+          <input type="date" id="kindGeburtsdatum" required>
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="erzName"><span data-t="field_erz_name"></span> <span class="req">*</span></label>
+        <input type="text" id="erzName" required>
+        <div class="error-msg" data-t="required_hint"></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="erzGeburtsdatum"><span data-t="field_erz_geburtsdatum"></span> <span class="req">*</span></label>
+          <input type="date" id="erzGeburtsdatum" required>
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+        <div class="field">
+          <label for="erzBeziehung"><span data-t="field_erz_beziehung"></span> <span class="req">*</span></label>
+          <select id="erzBeziehung" required>
+            <option value="mutter" data-t="erz_beziehung_mutter"></option>
+            <option value="vater" data-t="erz_beziehung_vater"></option>
+            <option value="sorgeberechtigt" data-t="erz_beziehung_sorgeberechtigt"></option>
+            <option value="vormund" data-t="erz_beziehung_vormund"></option>
+            <option value="sonstige" data-t="erz_beziehung_sonstige"></option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="adresseStrasse"><span data-t="field_adresse_strasse"></span> <span class="req">*</span></label>
+        <input type="text" id="adresseStrasse" required>
+        <div class="error-msg" data-t="required_hint"></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="adressePlz"><span data-t="field_adresse_plz"></span> <span class="req">*</span></label>
+          <input type="text" id="adressePlz" required inputmode="numeric">
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+        <div class="field">
+          <label for="adresseOrt"><span data-t="field_adresse_ort"></span> <span class="req">*</span></label>
+          <input type="text" id="adresseOrt" required>
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="kontaktEmail"><span data-t="field_kontakt_email"></span> <span class="req">*</span></label>
+          <input type="email" id="kontaktEmail" required>
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+        <div class="field">
+          <label for="kontaktTelefon"><span data-t="field_kontakt_telefon"></span> <span class="req">*</span></label>
+          <input type="tel" id="kontaktTelefon" required>
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 2: Leistungsbezug -->
+    <section class="step" data-step="1">
+      <h2 id="step2Title"></h2>
+      <div class="checkbox-group" id="leistungGroup">
+        <label class="checkbox-item">
+          <input type="checkbox" name="leistung" value="buergergeld">
+          <span data-t="leistung_buergergeld"></span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="leistung" value="sozialhilfe">
+          <span data-t="leistung_sozialhilfe"></span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="leistung" value="wohngeld">
+          <span data-t="leistung_wohngeld"></span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="leistung" value="kinderzuschlag">
+          <span data-t="leistung_kinderzuschlag"></span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" name="leistung" value="asylblg">
+          <span data-t="leistung_asylblg"></span>
+        </label>
+      </div>
+      <div class="error-msg" id="leistungError" data-t="required_hint" style="display:none;"></div>
+    </section>
+
+    <!-- Step 3: Vereinsaktivitaet -->
+    <section class="step" data-step="2">
+      <h2 id="step3Title"></h2>
+      <p class="hint" id="step3Hint"></p>
+
+      <div class="field">
+        <label for="aktBeschreibung"><span data-t="field_aktivitaet_beschreibung"></span> <span class="req">*</span></label>
+        <input type="text" id="aktBeschreibung" required>
+        <div class="error-msg" data-t="required_hint"></div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="zeitraumVon"><span data-t="field_zeitraum_von"></span> <span class="req">*</span></label>
+          <input type="date" id="zeitraumVon" required>
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+        <div class="field">
+          <label for="zeitraumBis"><span data-t="field_zeitraum_bis"></span> <span class="req">*</span></label>
+          <input type="date" id="zeitraumBis" required>
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="beitragBetrag"><span data-t="field_beitrag_betrag"></span> <span class="req">*</span></label>
+          <input type="number" id="beitragBetrag" required min="0" step="0.01">
+          <div class="error-msg" data-t="required_hint"></div>
+        </div>
+        <div class="field">
+          <label for="beitragRhythmus"><span data-t="field_beitrag_rhythmus"></span> <span class="req">*</span></label>
+          <select id="beitragRhythmus" required>
+            <option value="monat" data-t="rhythmus_monat"></option>
+            <option value="quartal" data-t="rhythmus_quartal"></option>
+            <option value="halbjahr" data-t="rhythmus_halbjahr"></option>
+            <option value="jahr" data-t="rhythmus_jahr"></option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="faelligAm"><span data-t="field_faellig_am"></span> <span class="req">*</span></label>
+        <input type="text" id="faelligAm" required>
+        <div style="font-size:0.8rem;color:#556;margin-top:4px;" id="faelligAmHint"></div>
+        <div class="error-msg" data-t="required_hint"></div>
+      </div>
+    </section>
+
+    <!-- Step 4: Einwilligung -->
+    <section class="step" data-step="3">
+      <h2 id="consentTitle"></h2>
+      <div class="consent-box" id="consentText"></div>
+      <label class="checkbox-item">
+        <input type="checkbox" id="consentCheckbox" required>
+        <span id="consentCheckboxLabel"></span>
+      </label>
+      <div class="error-msg" id="consentError" data-t="required_hint" style="display:none;"></div>
+    </section>
+
+    <!-- Success -->
+    <section class="step" data-step="4">
+      <div class="success">
+        <div class="icon">&#10003;</div>
+        <h2 id="successTitle"></h2>
+        <p id="successText"></p>
+      </div>
+    </section>
+
+    <div class="nav-buttons" id="navButtons">
+      <button type="button" class="secondary" id="btnBack"></button>
+      <button type="button" class="primary" id="btnNext"></button>
+    </div>
+
+  </form>
+</div>
+
+<script id="i18nData" type="application/json">{"de": {"app_title": "Zuschuss beantragen", "intro_title": "Worum es hier geht", "intro_text": "Mit diesem Formular beantragen Sie einen Zuschuss aus dem Bildungs- und Teilhabepaket für den Vereinsbeitrag Ihres Kindes beim TSV 1862 Friedberg. Der Antrag wird automatisch ausgefüllt und an die zuständige Behörde geschickt. Sie benötigen dafür Ihren aktuellen Leistungsbescheid.", "step1_title": "Ihre Angaben", "field_kind_vorname": "Vorname des Kindes", "field_kind_nachname": "Nachname des Kindes", "field_kind_geburtsdatum": "Geburtsdatum des Kindes", "field_erz_name": "Name des/der Erziehungsberechtigten", "field_erz_geburtsdatum": "Geburtsdatum des/der Erziehungsberechtigten", "field_erz_beziehung": "Verhältnis zum Kind", "erz_beziehung_mutter": "Mutter", "erz_beziehung_vater": "Vater", "erz_beziehung_sorgeberechtigt": "Sorgeberechtigte/r", "erz_beziehung_vormund": "Vormund", "erz_beziehung_sonstige": "Sonstiges", "field_adresse_strasse": "Straße und Hausnummer", "field_adresse_plz": "Postleitzahl", "field_adresse_ort": "Ort", "field_kontakt_email": "E-Mail", "field_kontakt_telefon": "Telefon", "step2_title": "Welche Leistung beziehen Sie?", "leistung_buergergeld": "Bürgergeld (SGB II)", "leistung_sozialhilfe": "Sozialhilfe (SGB XII)", "leistung_wohngeld": "Wohngeld", "leistung_kinderzuschlag": "Kinderzuschlag", "leistung_asylblg": "Asylbewerberleistungen (AsylbLG)", "step3_title": "Angaben zur Vereinsmitgliedschaft", "step3_hint": "Diese Angaben entnehmen Sie am besten Ihrer Mitgliedsbestätigung oder fragen kurz bei der Vereinsverwaltung nach.", "field_aktivitaet_beschreibung": "Art der Mitgliedschaft/Aktivität", "field_aktivitaet_beschreibung_placeholder": "z. B. Vereinsmitgliedschaft Fußball-Jugend", "field_zeitraum_von": "Zeitraum von", "field_zeitraum_bis": "Zeitraum bis", "field_beitrag_betrag": "Beitragshöhe (€)", "field_beitrag_rhythmus": "Zahlungsrhythmus", "rhythmus_monat": "monatlich", "rhythmus_quartal": "vierteljährlich", "rhythmus_halbjahr": "halbjährlich", "rhythmus_jahr": "jährlich", "field_faellig_am": "Fällig am", "field_faellig_am_hint": "z. B. \"1. des Monats\" oder ein konkretes Datum", "step_consent_title": "Einwilligung zur Datenverarbeitung", "consent_text": "Ihre Angaben werden zur Bearbeitung Ihres Zuschussantrags beim TSV 1862 Friedberg und zur Weiterleitung an die zuständige Behörde verarbeitet und gespeichert. Weitere Informationen finden Sie in unserer Datenschutzerklärung.", "consent_checkbox": "Ich habe die Datenschutzinformation gelesen und willige in die Verarbeitung meiner Angaben ein.", "button_next": "Weiter", "button_back": "Zurück", "button_submit": "Antrag absenden", "submit_success_title": "Antrag übermittelt", "submit_success_text": "Vielen Dank. Wir prüfen Ihre Angaben und melden uns bei Rückfragen.", "required_hint": "Pflichtfeld"}, "en": {"app_title": "Apply for a subsidy", "intro_title": "What this is for", "intro_text": "Use this form to apply for a subsidy from the Bildungs- und Teilhabepaket (education and participation package) covering your child's membership fee at TSV 1862 Friedberg. The application is filled in automatically and sent to the responsible authority. You will need your current benefits notice.", "step1_title": "Your details", "field_kind_vorname": "Child's first name", "field_kind_nachname": "Child's last name", "field_kind_geburtsdatum": "Child's date of birth", "field_erz_name": "Name of parent/guardian", "field_erz_geburtsdatum": "Parent's/guardian's date of birth", "field_erz_beziehung": "Relationship to child", "erz_beziehung_mutter": "Mother", "erz_beziehung_vater": "Father", "erz_beziehung_sorgeberechtigt": "Legal custodian", "erz_beziehung_vormund": "Guardian", "erz_beziehung_sonstige": "Other", "field_adresse_strasse": "Street and house number", "field_adresse_plz": "Postal code", "field_adresse_ort": "City", "field_kontakt_email": "Email", "field_kontakt_telefon": "Phone", "step2_title": "Which benefit do you receive?", "leistung_buergergeld": "Bürgergeld (basic income support, SGB II)", "leistung_sozialhilfe": "Sozialhilfe (social assistance, SGB XII)", "leistung_wohngeld": "Wohngeld (housing benefit)", "leistung_kinderzuschlag": "Kinderzuschlag (child supplement)", "leistung_asylblg": "Benefits under the Asylum Seekers Benefits Act (AsylbLG)", "step3_title": "Details of the club membership", "step3_hint": "You can find these details on your membership confirmation, or ask the club office.", "field_aktivitaet_beschreibung": "Type of membership/activity", "field_aktivitaet_beschreibung_placeholder": "e.g. club membership, youth football", "field_zeitraum_von": "Period from", "field_zeitraum_bis": "Period to", "field_beitrag_betrag": "Fee amount (€)", "field_beitrag_rhythmus": "Payment interval", "rhythmus_monat": "monthly", "rhythmus_quartal": "quarterly", "rhythmus_halbjahr": "twice a year", "rhythmus_jahr": "annually", "field_faellig_am": "Due date", "field_faellig_am_hint": "e.g. \"1st of the month\" or a specific date", "step_consent_title": "Consent to data processing", "consent_text": "Your details will be processed and stored to handle your subsidy application at TSV 1862 Friedberg and to forward it to the responsible authority. See our privacy notice for more information.", "consent_checkbox": "I have read the privacy notice and consent to the processing of my details.", "button_next": "Next", "button_back": "Back", "button_submit": "Submit application", "submit_success_title": "Application submitted", "submit_success_text": "Thank you. We will check your details and contact you if we have any questions.", "required_hint": "Required field"}, "tr": {"app_title": "Destek başvurusu", "intro_title": "Bu form ne için", "intro_text": "Bu formla, çocuğunuzun TSV 1862 Friedberg'deki üyelik aidatı için Eğitim ve Katılım Paketi'nden (Bildungs- und Teilhabepaket) destek başvurusu yapıyorsunuz. Başvuru otomatik olarak doldurulup yetkili makama gönderilir. Bunun için güncel yardım kararınıza (Leistungsbescheid) ihtiyacınız var.", "step1_title": "Bilgileriniz", "field_kind_vorname": "Çocuğun adı", "field_kind_nachname": "Çocuğun soyadı", "field_kind_geburtsdatum": "Çocuğun doğum tarihi", "field_erz_name": "Veli/vasinin adı soyadı", "field_erz_geburtsdatum": "Veli/vasinin doğum tarihi", "field_erz_beziehung": "Çocukla yakınlık derecesi", "erz_beziehung_mutter": "Anne", "erz_beziehung_vater": "Baba", "erz_beziehung_sorgeberechtigt": "Velayet sahibi", "erz_beziehung_vormund": "Vasi", "erz_beziehung_sonstige": "Diğer", "field_adresse_strasse": "Sokak ve kapı numarası", "field_adresse_plz": "Posta kodu", "field_adresse_ort": "Şehir", "field_kontakt_email": "E-posta", "field_kontakt_telefon": "Telefon", "step2_title": "Hangi yardımı alıyorsunuz?", "leistung_buergergeld": "Bürgergeld (temel güvence, SGB II)", "leistung_sozialhilfe": "Sozialhilfe (sosyal yardım, SGB XII)", "leistung_wohngeld": "Wohngeld (kira yardımı)", "leistung_kinderzuschlag": "Kinderzuschlag (çocuk ek ödemesi)", "leistung_asylblg": "Sığınmacılara Yönelik Yardımlar Kanunu (AsylbLG)", "step3_title": "Kulüp üyeliği bilgileri", "step3_hint": "Bu bilgileri üyelik onayınızda bulabilir veya kulüp yönetiminden kısaca sorabilirsiniz.", "field_aktivitaet_beschreibung": "Üyelik/faaliyet türü", "field_aktivitaet_beschreibung_placeholder": "örn. futbol gençlik takımı üyeliği", "field_zeitraum_von": "Başlangıç tarihi", "field_zeitraum_bis": "Bitiş tarihi", "field_beitrag_betrag": "Aidat tutarı (€)", "field_beitrag_rhythmus": "Ödeme aralığı", "rhythmus_monat": "aylık", "rhythmus_quartal": "üç aylık", "rhythmus_halbjahr": "altı aylık", "rhythmus_jahr": "yıllık", "field_faellig_am": "Vade tarihi", "field_faellig_am_hint": "örn. \"ayın 1'i\" veya belirli bir tarih", "step_consent_title": "Veri işlemeye onay", "consent_text": "Bilgileriniz, TSV 1862 Friedberg'deki destek başvurunuzun işlenmesi ve yetkili makama iletilmesi için işlenip saklanacaktır. Ayrıntılar için gizlilik bildirimimize bakınız.", "consent_checkbox": "Gizlilik bildirimini okudum ve bilgilerimin işlenmesini onaylıyorum.", "button_next": "İleri", "button_back": "Geri", "button_submit": "Başvuruyu gönder", "submit_success_title": "Başvuru gönderildi", "submit_success_text": "Teşekkür ederiz. Bilgilerinizi kontrol edeceğiz ve sorumuz olursa sizinle iletişime geçeceğiz.", "required_hint": "Zorunlu alan"}, "ar": {"app_title": "طلب دعم مالي", "intro_title": "ما هو هذا النموذج", "intro_text": "باستخدام هذا النموذج، تتقدمون بطلب دعم من حزمة التعليم والمشاركة (Bildungs- und Teilhabepaket) لتغطية رسوم عضوية طفلكم في نادي TSV 1862 Friedberg. يتم ملء الطلب تلقائيًا وإرساله إلى الجهة المختصة. ستحتاجون إلى إشعار الاستحقاق الحالي الخاص بكم.", "step1_title": "بياناتكم", "field_kind_vorname": "الاسم الأول للطفل", "field_kind_nachname": "اسم عائلة الطفل", "field_kind_geburtsdatum": "تاريخ ميلاد الطفل", "field_erz_name": "اسم ولي الأمر", "field_erz_geburtsdatum": "تاريخ ميلاد ولي الأمر", "field_erz_beziehung": "صلة القرابة بالطفل", "erz_beziehung_mutter": "الأم", "erz_beziehung_vater": "الأب", "erz_beziehung_sorgeberechtigt": "صاحب/ة الحضانة", "erz_beziehung_vormund": "الوصي", "erz_beziehung_sonstige": "أخرى", "field_adresse_strasse": "الشارع ورقم المنزل", "field_adresse_plz": "الرمز البريدي", "field_adresse_ort": "المدينة", "field_kontakt_email": "البريد الإلكتروني", "field_kontakt_telefon": "الهاتف", "step2_title": "ما هي الإعانة التي تتلقونها؟", "leistung_buergergeld": "بورغرغيلد (الضمان الأساسي، SGB II)", "leistung_sozialhilfe": "المساعدة الاجتماعية (SGB XII)", "leistung_wohngeld": "إعانة السكن (Wohngeld)", "leistung_kinderzuschlag": "علاوة الطفل (Kinderzuschlag)", "leistung_asylblg": "إعانات طالبي اللجوء (AsylbLG)", "step3_title": "بيانات عضوية النادي", "step3_hint": "يمكنكم الاطلاع على هذه البيانات في تأكيد العضوية، أو الاستفسار لدى إدارة النادي.", "field_aktivitaet_beschreibung": "نوع العضوية/النشاط", "field_aktivitaet_beschreibung_placeholder": "مثال: عضوية فريق الشباب لكرة القدم", "field_zeitraum_von": "من تاريخ", "field_zeitraum_bis": "إلى تاريخ", "field_beitrag_betrag": "قيمة الاشتراك (€)", "field_beitrag_rhythmus": "دورية الدفع", "rhythmus_monat": "شهريًا", "rhythmus_quartal": "كل ثلاثة أشهر", "rhythmus_halbjahr": "كل نصف سنة", "rhythmus_jahr": "سنويًا", "field_faellig_am": "تاريخ الاستحقاق", "field_faellig_am_hint": "مثال: \"اليوم الأول من الشهر\" أو تاريخ محدد", "step_consent_title": "الموافقة على معالجة البيانات", "consent_text": "سيتم معالجة بياناتكم وتخزينها لمعالجة طلب الدعم لدى TSV 1862 Friedberg وإحالته إلى الجهة المختصة. لمزيد من المعلومات، يرجى الاطلاع على سياسة الخصوصية لدينا.", "consent_checkbox": "لقد قرأت سياسة الخصوصية وأوافق على معالجة بياناتي.", "button_next": "التالي", "button_back": "رجوع", "button_submit": "إرسال الطلب", "submit_success_title": "تم إرسال الطلب", "submit_success_text": "شكرًا لكم. سنراجع بياناتكم ونتواصل معكم في حال وجود أي استفسار.", "required_hint": "حقل إلزامي"}, "ru": {"app_title": "Подать заявку на пособие", "intro_title": "О чём эта форма", "intro_text": "С помощью этой формы вы подаёте заявку на пособие из пакета образования и участия (Bildungs- und Teilhabepaket) для оплаты членского взноса вашего ребёнка в клубе TSV 1862 Friedberg. Заявка заполняется автоматически и отправляется в соответствующее ведомство. Вам понадобится действующее уведомление о назначении пособия.", "step1_title": "Ваши данные", "field_kind_vorname": "Имя ребёнка", "field_kind_nachname": "Фамилия ребёнка", "field_kind_geburtsdatum": "Дата рождения ребёнка", "field_erz_name": "ФИО законного представителя", "field_erz_geburtsdatum": "Дата рождения законного представителя", "field_erz_beziehung": "Родственная связь с ребёнком", "erz_beziehung_mutter": "Мать", "erz_beziehung_vater": "Отец", "erz_beziehung_sorgeberechtigt": "Опекун по праву опеки", "erz_beziehung_vormund": "Попечитель", "erz_beziehung_sonstige": "Другое", "field_adresse_strasse": "Улица и номер дома", "field_adresse_plz": "Почтовый индекс", "field_adresse_ort": "Город", "field_kontakt_email": "Электронная почта", "field_kontakt_telefon": "Телефон", "step2_title": "Какое пособие вы получаете?", "leistung_buergergeld": "Bürgergeld (базовое обеспечение, SGB II)", "leistung_sozialhilfe": "Sozialhilfe (социальная помощь, SGB XII)", "leistung_wohngeld": "Wohngeld (жилищное пособие)", "leistung_kinderzuschlag": "Kinderzuschlag (доплата на ребёнка)", "leistung_asylblg": "Пособия по Закону о пособиях для просителей убежища (AsylbLG)", "step3_title": "Данные о членстве в клубе", "step3_hint": "Эти данные можно найти в подтверждении членства или узнать в администрации клуба.", "field_aktivitaet_beschreibung": "Вид членства/деятельности", "field_aktivitaet_beschreibung_placeholder": "например, членство в детской футбольной секции", "field_zeitraum_von": "Период с", "field_zeitraum_bis": "Период по", "field_beitrag_betrag": "Сумма взноса (€)", "field_beitrag_rhythmus": "Периодичность оплаты", "rhythmus_monat": "ежемесячно", "rhythmus_quartal": "ежеквартально", "rhythmus_halbjahr": "раз в полгода", "rhythmus_jahr": "ежегодно", "field_faellig_am": "Срок оплаты", "field_faellig_am_hint": "например, «1-е число месяца» или конкретная дата", "step_consent_title": "Согласие на обработку данных", "consent_text": "Ваши данные будут обработаны и сохранены для рассмотрения заявки на пособие в TSV 1862 Friedberg и передачи в соответствующее ведомство. Подробнее см. в нашей политике конфиденциальности.", "consent_checkbox": "Я ознакомился(-лась) с политикой конфиденциальности и даю согласие на обработку моих данных.", "button_next": "Далее", "button_back": "Назад", "button_submit": "Отправить заявку", "submit_success_title": "Заявка отправлена", "submit_success_text": "Спасибо. Мы проверим ваши данные и свяжемся с вами при возникновении вопросов.", "required_hint": "Обязательное поле"}, "uk": {"app_title": "Подати заявку на допомогу", "intro_title": "Про що ця форма", "intro_text": "За допомогою цієї форми ви подаєте заявку на допомогу з пакета освіти та участі (Bildungs- und Teilhabepaket) для оплати членського внеску вашої дитини в клубі TSV 1862 Friedberg. Заявка заповнюється автоматично та надсилається до відповідного органу. Вам знадобиться чинне повідомлення про призначення допомоги.", "step1_title": "Ваші дані", "field_kind_vorname": "Ім'я дитини", "field_kind_nachname": "Прізвище дитини", "field_kind_geburtsdatum": "Дата народження дитини", "field_erz_name": "ПІБ законного представника", "field_erz_geburtsdatum": "Дата народження законного представника", "field_erz_beziehung": "Родинний зв'язок з дитиною", "erz_beziehung_mutter": "Мати", "erz_beziehung_vater": "Батько", "erz_beziehung_sorgeberechtigt": "Опікун за правом опіки", "erz_beziehung_vormund": "Піклувальник", "erz_beziehung_sonstige": "Інше", "field_adresse_strasse": "Вулиця та номер будинку", "field_adresse_plz": "Поштовий індекс", "field_adresse_ort": "Місто", "field_kontakt_email": "Електронна пошта", "field_kontakt_telefon": "Телефон", "step2_title": "Яку допомогу ви отримуєте?", "leistung_buergergeld": "Bürgergeld (базове забезпечення, SGB II)", "leistung_sozialhilfe": "Sozialhilfe (соціальна допомога, SGB XII)", "leistung_wohngeld": "Wohngeld (житлова допомога)", "leistung_kinderzuschlag": "Kinderzuschlag (доплата на дитину)", "leistung_asylblg": "Виплати за Законом про допомогу шукачам притулку (AsylbLG)", "step3_title": "Дані про членство в клубі", "step3_hint": "Ці дані можна знайти в підтвердженні членства або запитати в адміністрації клубу.", "field_aktivitaet_beschreibung": "Вид членства/діяльності", "field_aktivitaet_beschreibung_placeholder": "напр., членство в дитячій футбольній секції", "field_zeitraum_von": "Період з", "field_zeitraum_bis": "Період по", "field_beitrag_betrag": "Сума внеску (€)", "field_beitrag_rhythmus": "Періодичність оплати", "rhythmus_monat": "щомісяця", "rhythmus_quartal": "щокварталу", "rhythmus_halbjahr": "раз на півроку", "rhythmus_jahr": "щорічно", "field_faellig_am": "Термін сплати", "field_faellig_am_hint": "напр., «1-ше число місяця» або конкретна дата", "step_consent_title": "Згода на обробку даних", "consent_text": "Ваші дані будуть оброблені та збережені для розгляду заявки на допомогу в TSV 1862 Friedberg і передачі до відповідного органу. Детальніше див. у нашій політиці конфіденційності.", "consent_checkbox": "Я ознайомився(-лася) з політикою конфіденційності і надаю згоду на обробку моїх даних.", "button_next": "Далі", "button_back": "Назад", "button_submit": "Надіслати заявку", "submit_success_title": "Заявку надіслано", "submit_success_text": "Дякуємо. Ми перевіримо ваші дані та зв'яжемося з вами, якщо виникнуть запитання.", "required_hint": "Обов'язкове поле"}, "fr": {"app_title": "Demander une aide", "intro_title": "De quoi il s'agit", "intro_text": "Ce formulaire vous permet de demander une aide issue du pack éducation et participation (Bildungs- und Teilhabepaket) pour la cotisation de votre enfant au club TSV 1862 Friedberg. La demande est remplie automatiquement et envoyée à l'administration compétente. Vous aurez besoin de votre notification d'aide en cours de validité.", "step1_title": "Vos informations", "field_kind_vorname": "Prénom de l'enfant", "field_kind_nachname": "Nom de l'enfant", "field_kind_geburtsdatum": "Date de naissance de l'enfant", "field_erz_name": "Nom du/de la représentant(e) légal(e)", "field_erz_geburtsdatum": "Date de naissance du/de la représentant(e) légal(e)", "field_erz_beziehung": "Lien avec l'enfant", "erz_beziehung_mutter": "Mère", "erz_beziehung_vater": "Père", "erz_beziehung_sorgeberechtigt": "Titulaire de l'autorité parentale", "erz_beziehung_vormund": "Tuteur/tutrice", "erz_beziehung_sonstige": "Autre", "field_adresse_strasse": "Rue et numéro", "field_adresse_plz": "Code postal", "field_adresse_ort": "Ville", "field_kontakt_email": "E-mail", "field_kontakt_telefon": "Téléphone", "step2_title": "Quelle aide percevez-vous ?", "leistung_buergergeld": "Bürgergeld (revenu de base, SGB II)", "leistung_sozialhilfe": "Sozialhilfe (aide sociale, SGB XII)", "leistung_wohngeld": "Wohngeld (aide au logement)", "leistung_kinderzuschlag": "Kinderzuschlag (supplément pour enfant)", "leistung_asylblg": "Prestations au titre de la loi sur les demandeurs d'asile (AsylbLG)", "step3_title": "Informations sur l'adhésion au club", "step3_hint": "Vous trouverez ces informations sur votre confirmation d'adhésion, ou demandez au secrétariat du club.", "field_aktivitaet_beschreibung": "Type d'adhésion/d'activité", "field_aktivitaet_beschreibung_placeholder": "ex. adhésion section football jeunes", "field_zeitraum_von": "Période du", "field_zeitraum_bis": "Période au", "field_beitrag_betrag": "Montant de la cotisation (€)", "field_beitrag_rhythmus": "Fréquence de paiement", "rhythmus_monat": "mensuelle", "rhythmus_quartal": "trimestrielle", "rhythmus_halbjahr": "semestrielle", "rhythmus_jahr": "annuelle", "field_faellig_am": "Échéance", "field_faellig_am_hint": "ex. « le 1er du mois » ou une date précise", "step_consent_title": "Consentement au traitement des données", "consent_text": "Vos données seront traitées et conservées pour le traitement de votre demande d'aide auprès du TSV 1862 Friedberg et leur transmission à l'administration compétente. Pour en savoir plus, consultez notre politique de confidentialité.", "consent_checkbox": "J'ai lu la politique de confidentialité et je consens au traitement de mes données.", "button_next": "Suivant", "button_back": "Retour", "button_submit": "Envoyer la demande", "submit_success_title": "Demande envoyée", "submit_success_text": "Merci. Nous vérifions vos informations et vous recontacterons si nécessaire.", "required_hint": "Champ obligatoire"}, "es": {"app_title": "Solicitar una ayuda", "intro_title": "De qué trata esto", "intro_text": "Con este formulario solicita una ayuda del paquete de educación y participación (Bildungs- und Teilhabepaket) para la cuota de socio de su hijo/a en el club TSV 1862 Friedberg. La solicitud se rellena automáticamente y se envía a la autoridad competente. Necesitará su resolución de prestación vigente.", "step1_title": "Sus datos", "field_kind_vorname": "Nombre del niño/a", "field_kind_nachname": "Apellido del niño/a", "field_kind_geburtsdatum": "Fecha de nacimiento del niño/a", "field_erz_name": "Nombre del/de la tutor(a) legal", "field_erz_geburtsdatum": "Fecha de nacimiento del/de la tutor(a) legal", "field_erz_beziehung": "Relación con el niño/a", "erz_beziehung_mutter": "Madre", "erz_beziehung_vater": "Padre", "erz_beziehung_sorgeberechtigt": "Titular de la patria potestad", "erz_beziehung_vormund": "Tutor(a) legal", "erz_beziehung_sonstige": "Otro", "field_adresse_strasse": "Calle y número", "field_adresse_plz": "Código postal", "field_adresse_ort": "Localidad", "field_kontakt_email": "Correo electrónico", "field_kontakt_telefon": "Teléfono", "step2_title": "¿Qué prestación recibe?", "leistung_buergergeld": "Bürgergeld (ingreso básico, SGB II)", "leistung_sozialhilfe": "Sozialhilfe (ayuda social, SGB XII)", "leistung_wohngeld": "Wohngeld (subsidio de vivienda)", "leistung_kinderzuschlag": "Kinderzuschlag (suplemento por hijo)", "leistung_asylblg": "Prestaciones según la ley para solicitantes de asilo (AsylbLG)", "step3_title": "Datos de la membresía del club", "step3_hint": "Puede encontrar estos datos en su confirmación de socio, o preguntar brevemente en la administración del club.", "field_aktivitaet_beschreibung": "Tipo de membresía/actividad", "field_aktivitaet_beschreibung_placeholder": "p. ej. membresía fútbol juvenil", "field_zeitraum_von": "Periodo desde", "field_zeitraum_bis": "Periodo hasta", "field_beitrag_betrag": "Importe de la cuota (€)", "field_beitrag_rhythmus": "Periodicidad de pago", "rhythmus_monat": "mensual", "rhythmus_quartal": "trimestral", "rhythmus_halbjahr": "semestral", "rhythmus_jahr": "anual", "field_faellig_am": "Fecha de vencimiento", "field_faellig_am_hint": "p. ej. «el día 1 del mes» o una fecha concreta", "step_consent_title": "Consentimiento para el tratamiento de datos", "consent_text": "Sus datos serán tratados y almacenados para gestionar su solicitud de ayuda ante el TSV 1862 Friedberg y remitirla a la autoridad competente. Más información en nuestra política de privacidad.", "consent_checkbox": "He leído la política de privacidad y consiento el tratamiento de mis datos.", "button_next": "Siguiente", "button_back": "Atrás", "button_submit": "Enviar solicitud", "submit_success_title": "Solicitud enviada", "submit_success_text": "Gracias. Revisaremos sus datos y nos pondremos en contacto si tenemos alguna pregunta.", "required_hint": "Campo obligatorio"}}</script>
+<script>
+(function () {
+  const i18n = JSON.parse(document.getElementById('i18nData').textContent);
+  const RTL_LANGS = ['ar'];
+  const steps = Array.from(document.querySelectorAll('.step'));
+  const totalFormSteps = 4; // 0..3, step 4 = success screen
+  let current = 0;
+  let lang = 'de';
+
+  const progressBar = document.getElementById('progressBar');
+  function renderProgress() {
+    progressBar.innerHTML = '';
+    for (let i = 0; i < totalFormSteps; i++) {
+      const seg = document.createElement('div');
+      seg.className = 'seg' + (i <= current && current < totalFormSteps ? (i < current || current === i ? ' done' : '') : '');
+      if (current >= totalFormSteps) seg.classList.add('done');
+      else if (i <= current) seg.classList.add('done');
+      progressBar.appendChild(seg);
+    }
+    progressBar.style.display = current >= totalFormSteps ? 'none' : 'flex';
+  }
+
+  function applyLang() {
+    const dict = i18n[lang];
+    document.documentElement.lang = lang;
+    document.documentElement.dir = RTL_LANGS.includes(lang) ? 'rtl' : 'ltr';
+
+    document.getElementById('appTitle').textContent = dict.app_title;
+    document.getElementById('introTitle').textContent = dict.intro_title;
+    document.getElementById('introText').textContent = dict.intro_text;
+    document.getElementById('step1Title').textContent = dict.step1_title;
+    document.getElementById('step2Title').textContent = dict.step2_title;
+    document.getElementById('step3Title').textContent = dict.step3_title;
+    document.getElementById('step3Hint').textContent = dict.step3_hint;
+    document.getElementById('faelligAmHint').textContent = dict.field_faellig_am_hint;
+    document.getElementById('consentTitle').textContent = dict.step_consent_title;
+    document.getElementById('consentText').textContent = dict.consent_text;
+    document.getElementById('consentCheckboxLabel').textContent = dict.consent_checkbox;
+    document.getElementById('successTitle').textContent = dict.submit_success_title;
+    document.getElementById('successText').textContent = dict.submit_success_text;
+    document.getElementById('aktBeschreibung').placeholder = dict.field_aktivitaet_beschreibung_placeholder;
+
+    document.querySelectorAll('[data-t]').forEach(el => {
+      const key = el.getAttribute('data-t');
+      if (dict[key] !== undefined) el.textContent = dict[key];
+    });
+
+    updateNavButtons();
+  }
+
+  function updateNavButtons() {
+    const dict = i18n[lang];
+    const backBtn = document.getElementById('btnBack');
+    const nextBtn = document.getElementById('btnNext');
+    backBtn.textContent = dict.button_back;
+    backBtn.style.visibility = current === 0 ? 'hidden' : 'visible';
+    if (current >= totalFormSteps) {
+      document.getElementById('navButtons').style.display = 'none';
+    } else {
+      document.getElementById('navButtons').style.display = 'flex';
+      nextBtn.textContent = current === totalFormSteps - 1 ? dict.button_submit : dict.button_next;
+    }
+  }
+
+  function showStep() {
+    steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === current));
+    renderProgress();
+    updateNavButtons();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function validateCurrentStep() {
+    let valid = true;
+    const stepEl = steps.find(s => Number(s.dataset.step) === current);
+    if (!stepEl) return true;
+
+    const inputs = stepEl.querySelectorAll('input[required], select[required]');
+    inputs.forEach(inp => {
+      const field = inp.closest('.field');
+      const ok = inp.type === 'checkbox' ? inp.checked : inp.value.trim() !== '';
+      if (!ok) {
+        valid = false;
+        if (field) field.classList.add('invalid');
+      } else if (field) {
+        field.classList.remove('invalid');
+      }
+    });
+
+    if (current === 1) {
+      const anyChecked = Array.from(document.querySelectorAll('input[name=leistung]')).some(c => c.checked);
+      document.getElementById('leistungError').style.display = anyChecked ? 'none' : 'block';
+      if (!anyChecked) valid = false;
+    }
+
+    if (current === 3) {
+      const consentOk = document.getElementById('consentCheckbox').checked;
+      document.getElementById('consentError').style.display = consentOk ? 'none' : 'block';
+      if (!consentOk) valid = false;
+    }
+
+    return valid;
+  }
+
+  function collectFormData() {
+    return {
+      kind: {
+        vorname: document.getElementById('kindVorname').value.trim(),
+        nachname: document.getElementById('kindNachname').value.trim(),
+        geburtsdatum: document.getElementById('kindGeburtsdatum').value
+      },
+      erziehungsberechtigter: {
+        name: document.getElementById('erzName').value.trim(),
+        geburtsdatum: document.getElementById('erzGeburtsdatum').value,
+        beziehung: document.getElementById('erzBeziehung').value
+      },
+      adresse: {
+        strasse: document.getElementById('adresseStrasse').value.trim(),
+        plz: document.getElementById('adressePlz').value.trim(),
+        ort: document.getElementById('adresseOrt').value.trim()
+      },
+      kontakt: {
+        email: document.getElementById('kontaktEmail').value.trim(),
+        telefon: document.getElementById('kontaktTelefon').value.trim()
+      },
+      leistung: Array.from(document.querySelectorAll('input[name=leistung]:checked')).map(c => c.value),
+      aktivitaet: {
+        beschreibung: document.getElementById('aktBeschreibung').value.trim(),
+        zeitraum_von: document.getElementById('zeitraumVon').value,
+        zeitraum_bis: document.getElementById('zeitraumBis').value,
+        beitrag_betrag: document.getElementById('beitragBetrag').value,
+        beitrag_rhythmus: document.getElementById('beitragRhythmus').value,
+        faellig_am: document.getElementById('faelligAm').value.trim()
+      },
+      sprache: lang
+    };
+  }
+
+  document.getElementById('langSelect').addEventListener('change', (e) => {
+    lang = e.target.value;
+    applyLang();
+  });
+
+  document.getElementById('btnBack').addEventListener('click', () => {
+    if (current > 0) { current--; showStep(); }
+  });
+
+  document.getElementById('btnNext').addEventListener('click', () => {
+    if (!validateCurrentStep()) return;
+
+    if (current === totalFormSteps - 1) {
+      const data = collectFormData();
+      // TODO: an Supabase (members + cases) uebergeben, siehe schema.sql
+      console.log('BuT-Antrag:', data);
+    }
+
+    current++;
+    showStep();
+  });
+
+  applyLang();
+  showStep();
+})();
+</script>
+</body>
+</html>
