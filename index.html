@@ -645,21 +645,43 @@
     if (current > 0) { current--; showStep(); }
   });
 
-  document.getElementById('btnNext').addEventListener('click', () => {
+  document.getElementById('btnNext').addEventListener('click', async () => {
     if (!validateCurrentStep()) return;
 
     if (current === totalFormSteps - 1) {
       const data = collectFormData();
-      // TODO: an Supabase (members + cases) uebergeben, siehe schema.sql
-      console.log('BuT-Antrag:', data);
       lastFormData = data;
+      data.behoerde = detectBehoerde(data.adresse.ort);
+      submitToSheet(data); // fire-and-forget, blockiert die UI nicht
       renderSummary(data);
-      document.getElementById('behoerdeSelect').value = detectBehoerde(data.adresse.ort);
+      document.getElementById('behoerdeSelect').value = data.behoerde;
     }
 
     current++;
     showStep();
   });
+
+  // ============================================================
+  // Anbindung ans Google Sheet (Uebergangsloesung bis Vereinsserver)
+  // APPS_SCRIPT_URL nach dem Deployment des Apps Script eintragen.
+  // Muss mit SHARED_SECRET in apps-script-code.gs uebereinstimmen.
+  // ============================================================
+  const APPS_SCRIPT_URL = ''; // z.B. 'https://script.google.com/macros/s/AKfycb.../exec'
+  const SHARED_SECRET = 'tsv1862-but-2026';
+
+  function submitToSheet(data) {
+    if (!APPS_SCRIPT_URL) {
+      console.warn('APPS_SCRIPT_URL ist noch nicht gesetzt - Antrag wurde NICHT gespeichert.');
+      return;
+    }
+    const payload = Object.assign({ secret: SHARED_SECRET }, data);
+    // text/plain vermeidet eine CORS-Preflight-Anfrage, die Apps Script nicht beantwortet
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.error('Sheet-Uebertragung fehlgeschlagen:', err));
+  }
 
   // ============================================================
   // Vereins-Stammdaten (konstant, nicht Teil der Nutzereingabe)
