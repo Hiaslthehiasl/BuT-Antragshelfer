@@ -663,18 +663,18 @@
 
   // ============================================================
   // Vereins-Stammdaten (konstant, nicht Teil der Nutzereingabe)
-  // WICHTIG: bankinstitut/iban/bic sind Platzhalter und muessen
-  // vor dem produktiven Einsatz durch die echte Vereins-
-  // Bankverbindung ersetzt werden!
+  // WICHTIG: bankinstitut/iban/bic sind BEWUSST Platzhalterdaten
+  // für den Prototyp/die Vereinsvorstellung. Vor dem produktiven
+  // Einsatz durch die echte Vereins-Bankverbindung ersetzen!
   // ============================================================
   const CLUB_INFO = {
     name: 'TSV 1862 Friedberg e.V.',
     strasse: 'Bauernbräustraße 6',
     plz: '86316',
     ort: 'Friedberg',
-    bankinstitut: 'BITTE ERGÄNZEN',
-    iban: 'BITTE ERGÄNZEN',
-    bic: 'BITTE ERGÄNZEN'
+    bankinstitut: 'Musterbank (Platzhalter für Prototyp)',
+    iban: 'DE89 3704 0044 0532 0130 00',
+    bic: 'MUSTDEXXXXX'
   };
 
   function detectBehoerde(ort) {
